@@ -1,5 +1,5 @@
-Vérificateur j2, guilde tramontane, 2026-11-10 11:33
-NOTE : 12 / 20
+Vérificateur j2, guilde tramontane, 2026-11-10 15:00
+NOTE : 20 / 20
 
 Quête 2.1 · L'image propre (8 pt)
   [OK] 1 pt  l'image mistral/colis:1.0 existe
@@ -17,28 +17,15 @@ Quête 2.2 · Les données qui restent (4 pt)
   [OK] 2 pt  le colis est toujours là après recréation du conteneur
 
 Quête 2.3 · Le réseau de Mistral (1 pt)
-  [--] 1 pt  le réseau mistral-net existe
-         -> docker network create mistral-net
+  [OK] 1 pt  le réseau mistral-net existe
 
 Quête 2.4 · La stack Compose (7 pt)
-  [--] 0.5 pt  compose.yaml est valide
-         -> docker compose config ; erreur : e containers stop, then print their exit codes
-
-Run 'docker COMMAND --help' for more information on a command.
-
-To get more help with docker, check out our guides at https://docs.docker.com/go/guides/
-  [--] 0.5 pt  services web et base présents
-         -> nomme les services web et base
-  [--] 1 pt  la base n'est pas publiée sur l'hôte
-         -> retire ports: du service base
-  [--] 0.5 pt  base : postgres:16.x épinglé
-         -> image: postgres:16.4-alpine
-  [--] 1 pt  les données de Postgres sont dans un volume nommé
-         -> volumes: - base-donnees:/var/lib/postgresql/data
-  [--] 0.5 pt  web attend que la base soit prête (healthcheck + service_healthy)
-         -> depends_on: base: condition: service_healthy
-  [--] 1 pt  deux réseaux : la base seulement sur le réseau interne
-         -> networks front et back ; base sur back seulement
-  [--] 0.5 pt  .env.exemple versionné, .env jamais versionné
-         -> git rm --cached .env ; ajoute .env au .gitignore
-  [--] 1.5 pt  la stack démarre et enregistre un colis
+  [OK] 0.5 pt  compose.yaml est valide
+  [OK] 0.5 pt  services web et base présents
+  [OK] 1 pt  la base n'est pas publiée sur l'hôte
+  [OK] 0.5 pt  base : postgres:16.x épinglé
+  [OK] 1 pt  les données de Postgres sont dans un volume nommé
+  [OK] 0.5 pt  web attend que la base soit prête (healthcheck + service_healthy)
+  [OK] 1 pt  deux réseaux : la base seulement sur le réseau interne
+  [OK] 0.5 pt  .env.exemple versionné, .env jamais versionné
+  [OK] 1.5 pt  la stack démarre (image mistral/colis:1.0), le web parle à Postgres et enregistre un colis
