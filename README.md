@@ -34,6 +34,7 @@ elle n'est joignable que depuis le réseau, jamais depuis l'hôte.
 |                | HERITAGE       | 1.0            | 1.1            | Gain heritage   |
 |                | (Malik)        |                |                | -> 1.1          |
 +----------------+----------------+----------------+----------------+-----------------+
+| Base           |Debian/Linux 13 |Debian 13.7 slim| Alpine 3.24.4  |
 | Taille         | 1118 Mo        | 150 Mo         | 72 Mo          | -94 %           |
 | Utilisateur    | root           | 10001          | 10001          | non root        |
 | CRITICAL       | 235            | 0              | 0              | 235 -> 0        |
