@@ -58,6 +58,48 @@ durcie et déployable avec Docker Compose ou Kubernetes (k3s).
 - k3s (via `python3 ../lab.py k3s ...`)
 - curl
 
+Le mot de passe de la base n'est **jamais** versionné (`secrets/` et `.env`
+sont dans `.gitignore`). Après un `git clone`, la stack ne démarre donc pas
+tant que ces deux fichiers n'existent pas.
+
+1. Variables non sensibles :
+
+   ```bash
+   cp .env.exemple .env
+   ```
+
+2. Secret de la base (généré aléatoirement, sans retour à la ligne) :
+
+   ```bash
+   mkdir -p secrets
+   openssl rand -hex 16 | tr -d '\n' > secrets/db_mdp.txt
+   chmod 644 secrets/db_mdp.txt
+   ```
+
+3. Vérifier que rien ne partira sur GitHub :
+
+   ```bash
+   git check-ignore .env secrets/db_mdp.txt
+   git ls-files | grep -E '(^|/)\.env$|secrets/' || echo propre
+   ```
+
+4. Lancer :
+
+   ```bash
+   docker compose up -d
+   ```
+
+### Changer le mot de passe plus tard
+
+Postgres ne lit le secret qu'à la **première** initialisation du volume.
+Si vous régénérez `secrets/db_mdp.txt` sur une base existante,
+la connexion échoue (`password authentication failed`).
+
+- Environnement de test : `docker compose down -v` puis `up -d`
+  (**efface les données**).
+- Production : changer le mot de passe dans Postgres
+  (`ALTER USER colis WITH PASSWORD '...'`), puis mettre à jour le fichier.
+
 ## Installation
 
     git clone https://github.com/Azaelias/Mistral-Tramontane-S2
