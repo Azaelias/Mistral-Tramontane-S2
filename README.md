@@ -47,7 +47,7 @@ Fichiers : `securite/trivy-heritage.json`, `securite/trivy-1.1.json`,
 `securite/sbom-1.1.cdx.json`.
 
 4.1 : 
-Mistral Colis : suivi de colis conteneurisé
+# Mistral Colis : suivi de colis conteneurisé
 
 API de suivi de colis (Python, port 8080), livrée en image Docker
 durcie et déployable avec Docker Compose ou Kubernetes (k3s).
@@ -56,19 +56,31 @@ durcie et déployable avec Docker Compose ou Kubernetes (k3s).
 
 - Docker et Docker Compose
 - k3s (via `python3 ../lab.py k3s ...`)
-- curl
+- curl, openssl
 
-Le mot de passe de la base n'est **jamais** versionné (`secrets/` et `.env`
-sont dans `.gitignore`). Après un `git clone`, la stack ne démarre donc pas
-tant que ces deux fichiers n'existent pas.
+## Installation
 
-1. Variables non sensibles :
+1. Récupérer le code et construire l'image :
+
+   ```bash
+   git clone https://github.com/Azaelias/Mistral-Tramontane-S2
+   cd Mistral-Tramontane-S2/depot
+   docker build -t mistral/colis:1.1 app/
+   ```
+
+2. Créer les fichiers de configuration locaux.
+
+   Le mot de passe de la base n'est **jamais** versionné (`secrets/` et
+   `.env` sont dans `.gitignore`). Après un `git clone`, la stack ne démarre
+   donc pas tant que ces deux fichiers n'existent pas.
+
+   Variables non sensibles :
 
    ```bash
    cp .env.exemple .env
    ```
 
-2. Secret de la base (généré aléatoirement, sans retour à la ligne) :
+   Secret de la base (généré aléatoirement, sans retour à la ligne) :
 
    ```bash
    mkdir -p secrets
@@ -83,52 +95,107 @@ tant que ces deux fichiers n'existent pas.
    git ls-files | grep -E '(^|/)\.env$|secrets/' || echo propre
    ```
 
-4. Lancer :
-
-   ```bash
-   docker compose up -d
-   ```
+   Attendu : les deux fichiers sont listés par `check-ignore`, puis `propre`.
 
 ### Changer le mot de passe plus tard
 
 Postgres ne lit le secret qu'à la **première** initialisation du volume.
-Si vous régénérez `secrets/db_mdp.txt` sur une base existante,
-la connexion échoue (`password authentication failed`).
+Si vous régénérez `secrets/db_mdp.txt` sur une base existante, la connexion
+échoue (`password authentication failed`).
 
-- Environnement de test : `docker compose down -v` puis `up -d`
+- Environnement de test : `docker compose down -v` puis `docker compose up -d`
   (**efface les données**).
 - Production : changer le mot de passe dans Postgres
   (`ALTER USER colis WITH PASSWORD '...'`), puis mettre à jour le fichier.
 
-## Installation
-
-    git clone https://github.com/Azaelias/Mistral-Tramontane-S2
-    cd depot
-    docker build -t mistral/colis:1.1 app/
-
 ## Lancement avec Docker Compose
 
-    docker compose up -d
-    docker compose ps
-    curl -s http://127.0.0.1:8080/sante
+```bash
+docker compose up -d
+docker compose ps
+curl -s http://127.0.0.1:8080/sante
+```
+
+Attendu : `web` et `base` en `(healthy)`, et `"base":"postgres"` dans la
+réponse de `/sante` (comptez ~15 secondes au premier démarrage).
 
 Arrêt : `docker compose down`
+Arrêt avec suppression des données : `docker compose down -v`
 
 ## Lancement avec k3s
 
 Importer l'image dans k3s (elle n'est pas tirée d'un registre,
 `imagePullPolicy: Never`), puis déployer :
 
-    python3 ../lab.py k3s kubectl apply -f k8s/colis.yaml
-    python3 ../lab.py k3s kubectl rollout status deployment colis
-    python3 ../lab.py k3s kubectl get pods,svc
-    curl -s http://127.0.0.1:30080/sante
+```bash
+python3 ../lab.py k3s kubectl apply -f k8s/colis.yaml
+python3 ../lab.py k3s kubectl rollout status deployment colis
+python3 ../lab.py k3s kubectl get pods,svc
+curl -s http://127.0.0.1:30080/sante
+```
 
 Après reconstruction de l'image : la réimporter dans k3s, puis
 
-    python3 ../lab.py k3s kubectl rollout restart deployment colis
+```bash
+python3 ../lab.py k3s kubectl rollout restart deployment colis
+```
 
 Suppression : `python3 ../lab.py k3s kubectl delete -f k8s/colis.yaml`
+
+## Vérifier l'installation
+
+### Vérification manuelle (Compose)
+
+1. Les conteneurs sont sains :
+
+   ```bash
+   docker compose ps
+   ```
+   Attendu : `web` et `base` en `Up ... (healthy)`.
+
+2. Le portail voit la base :
+
+   ```bash
+   curl -s http://127.0.0.1:8080/sante
+   ```
+   Attendu : `"base":"postgres"`.
+
+3. Seul `web` est publié (la base est isolée) :
+
+   ```bash
+   docker compose ps --format '{{.Service}} {{.Ports}}'
+   ```
+   Attendu : un port publié pour `web`, aucun pour `base`.
+
+4. Le mot de passe n'est pas en clair :
+
+   ```bash
+   docker inspect -f '{{.Config.Env}}' $(docker compose ps -q base) | grep -c 'POSTGRES_PASSWORD='
+   ```
+   Attendu : `0` (seul `POSTGRES_PASSWORD_FILE` apparaît).
+
+5. Durcissement de `web` :
+
+   ```bash
+   docker inspect -f '{{.HostConfig.ReadonlyRootfs}} {{.HostConfig.CapDrop}} {{.HostConfig.Memory}}' $(docker compose ps -q web)
+   ```
+   Attendu : `true [ALL] 268435456`.
+
+### Vérification (k3s)
+
+```bash
+python3 ../lab.py k3s kubectl get pods
+```
+Attendu : tous les pods en `Running` et `READY 1/1`.
+
+Auto-réparation : un pod supprimé est recréé par le Deployment.
+
+```bash
+python3 ../lab.py k3s kubectl delete pod -l app=colis --wait=false
+python3 ../lab.py k3s kubectl get pods
+```
+Attendu : un nouveau pod apparaît aussitôt et repasse `Running`
+(adaptez le sélecteur `app=colis` à celui de votre manifeste).
 
 ## Sécurité
 
@@ -140,12 +207,19 @@ Suppression : `python3 ../lab.py k3s kubectl delete -f k8s/colis.yaml`
 - Écriture limitée à `/tmp` et `/donnees` (volumes `emptyDir`)
 - Ressources bornées (requests/limits CPU et mémoire)
 - Sondes readiness et liveness sur `/sante`
+- Mot de passe de la base fourni par secret (`POSTGRES_PASSWORD_FILE`),
+  jamais en variable d'environnement ni dans Git
+- Base de données isolée sur un réseau interne, non publiée sur l'hôte
 
 ## Limites
 
-- Les données sont dans un `emptyDir` : perdues à la suppression
+- Les secrets ne sont pas dans le dépôt : chaque machine doit les créer
+  (voir Installation), un `git clone` seul ne suffit pas
+- Compose : les données de Postgres sont dans un volume nommé, supprimé
+  par `docker compose down -v`
+- k3s : les données sont dans un `emptyDir`, perdues à la suppression
   du pod
-- Chaque réplica a sa propre base SQLite : les colis enregistrés
+- k3s : chaque réplica a sa propre base SQLite, les colis enregistrés
   via un pod ne sont pas visibles depuis les autres
 - Service NodePort : adapté au TP, pas à la production (prévoir un
   Ingress et TLS)
