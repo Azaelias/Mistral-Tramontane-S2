@@ -1,0 +1,27 @@
+Vérificateur j4, guilde tramontane, 2026-11-13 10:38
+NOTE : 20 / 20
+
+Quête 4.1 · Trois copies de Suivi Colis (10 pt)
+  [OK] 0.5 pt  k8s/colis.yaml est un manifeste valide
+  [OK] 1 pt  Deployment colis à 3 réplicas
+  [OK] 1 pt  image mistral/colis:1.1, jamais retéléchargée
+  [OK] 1 pt  runAsNonRoot
+  [OK] 1 pt  readOnlyRootFilesystem et allowPrivilegeEscalation: false
+  [OK] 1 pt  limites CPU et mémoire
+  [OK] 1 pt  readinessProbe et livenessProbe sur /sante
+  [OK] 1 pt  Service colis : NodePort 30080 vers le port 8080, sélecteur juste
+         le Spectre du vérificateur attaque pendant 1 minute...
+  [OK] 1.5 pt  3 pods prêts dans k3s
+  [OK] 1 pt  un pod supprimé est recréé tout seul
+
+Quête 4.2 · Le Spectre (4 pt)
+  [OK] 2 pt  le service reste disponible sous l'attaque (100%, 70 % au moins)
+  [OK] 2 pt  disponibilité de 95 % au moins
+
+Quête 4.3 · La stack livrée (6 pt)
+  [OK] 1 pt  README.md complet (25 lignes utiles au moins)
+  [OK] 1 pt  le README explique le lancement avec Compose et avec k3s
+  [OK] 1 pt  les rapports de sécurité sont dans le dépôt
+  [OK] 1 pt  .gitignore protège .env et secrets/
+  [OK] 1 pt  historique Git : 19 commits (15 au moins)
+  [OK] 1 pt  6 auteurs différents (3 au moins)

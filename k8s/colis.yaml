@@ -12,6 +12,7 @@ spec:
       labels:
         app: colis
     spec:
+      terminationGracePeriodSeconds: 5
       containers:
         - name: colis
           image: mistral/colis:1.1
