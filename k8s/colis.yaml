@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: colis
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: colis
+  template:
+    metadata:
+      labels:
+        app: colis
+    spec:
+      containers:
+        - name: colis
+          image: mistral/colis:1.1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet: { path: /sante, port: 8080 }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /sante, port: 8080 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: donnees
+              mountPath: /donnees
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: donnees
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: colis
+spec:
+  type: NodePort
+  selector:
+    app: colis
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080
