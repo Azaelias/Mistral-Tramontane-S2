@@ -1,0 +1,29 @@
+Vérificateur j3, guilde tramontane, 2026-11-11 21:33
+NOTE : 20 / 20
+
+Quête 3.1 · Le rapport de Jeanne (5 pt)
+  [OK] 1.5 pt  securite/trivy-heritage.json : rapport Trivy JSON de l'image de Malik
+  [OK] 0.5 pt  le rapport contient bien les vulnérabilités trouvées
+  [OK] 1 pt  securite/trivy-1.1.json : rapport de la nouvelle image
+  [OK] 2 pt  securite/sbom-1.1.cdx.json : SBOM CycloneDX de l'image 1.1
+
+Quête 3.2 · L'image durcie 1.1 (7 pt)
+  [OK] 1 pt  l'image mistral/colis:1.1 existe
+  [OK] 1 pt  elle ne tourne pas en root
+  [OK] 1 pt  elle n'est pas plus grosse que la 1.0 (72 Mo contre 72 Mo)
+  [OK] 3 pt  0 vulnérabilité CRITICAL corrigeable (scan du vérificateur : 0)
+  [OK] 1 pt  moins de HIGH et CRITICAL que l'héritage (0 contre 2782)
+
+Quête 3.3 · La stack en mode durci (5 pt)
+  [OK] 1 pt  web : système de fichiers en lecture seule
+  [OK] 0.5 pt  web : /tmp en tmpfs
+  [OK] 1 pt  web : toutes les capacités retirées
+  [OK] 0.5 pt  web : no-new-privileges
+  [OK] 1 pt  web : mémoire et nombre de processus limités
+  [OK] 1 pt  la stack démarre (image mistral/colis:1.1), le web parle à Postgres et enregistre un colis
+
+Quête 3.4 · Les secrets (3 pt)
+  [OK] 1 pt  base : mot de passe lu dans un secret
+  [OK] 0.5 pt  web : mot de passe lu dans un secret
+  [OK] 0.5 pt  plus aucun mot de passe en variable d'environnement
+  [OK] 1 pt  aucun secret versionné dans Git

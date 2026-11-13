@@ -1,0 +1,31 @@
+Vérificateur j2, guilde tramontane, 2026-11-10 15:00
+NOTE : 20 / 20
+
+Quête 2.1 · L'image propre (8 pt)
+  [OK] 1 pt  l'image mistral/colis:1.0 existe
+  [OK] 1.5 pt  app/Dockerfile est multi-stage (2 FROM)
+  [OK] 1 pt  toutes les images de base ont une version épinglée
+  [OK] 1.5 pt  l'image ne tourne pas en root (USER 10001)
+  [OK] 0.5 pt  pas de compilateur dans l'image finale
+  [OK] 1 pt  un HEALTHCHECK est déclaré
+  [OK] 0.5 pt  app/.dockerignore présent
+  [OK] 1 pt  taille 150 Mo (moins de 300 Mo)
+
+Quête 2.2 · Les données qui restent (4 pt)
+  [OK] 1 pt  le conteneur démarre et /sante répond
+  [OK] 1 pt  un colis s'enregistre avec un volume sur /donnees
+  [OK] 2 pt  le colis est toujours là après recréation du conteneur
+
+Quête 2.3 · Le réseau de Mistral (1 pt)
+  [OK] 1 pt  le réseau mistral-net existe
+
+Quête 2.4 · La stack Compose (7 pt)
+  [OK] 0.5 pt  compose.yaml est valide
+  [OK] 0.5 pt  services web et base présents
+  [OK] 1 pt  la base n'est pas publiée sur l'hôte
+  [OK] 0.5 pt  base : postgres:16.x épinglé
+  [OK] 1 pt  les données de Postgres sont dans un volume nommé
+  [OK] 0.5 pt  web attend que la base soit prête (healthcheck + service_healthy)
+  [OK] 1 pt  deux réseaux : la base seulement sur le réseau interne
+  [OK] 0.5 pt  .env.exemple versionné, .env jamais versionné
+  [OK] 1.5 pt  la stack démarre (image mistral/colis:1.0), le web parle à Postgres et enregistre un colis

@@ -1,0 +1,66 @@
+services:
+  base:
+    image: postgres:16.4-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_mdp   # secret en fichier, plus de mot de passe en clair
+    secrets:
+      - db_mdp
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - back                                        # reseau interne, aucun port publie
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  web:
+    build: ./app
+    image: mistral/colis:1.1
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}@base:5432/${POSTGRES_DB}
+      DB_PASSWORD_FILE: /run/secrets/db_mdp
+    secrets:
+      - db_mdp
+    ports:
+      - "127.0.0.1:8080:8080"                       # seul port publie, lie a localhost
+    networks:
+      - front
+      - back
+    depends_on:
+      base:
+        condition: service_healthy
+    # --- Durcissement (quete 3.3)
+    read_only: true                                 # systeme de fichiers en lecture seule
+    tmpfs:
+      - /tmp                                        # /tmp en memoire
+    cap_drop:
+      - ALL                                         # aucune capability
+    security_opt:
+      - no-new-privileges:true                      # pas d'elevation de privileges
+    mem_limit: 256m
+    pids_limit: 100
+
+  adminer:
+    image: adminer:4.8.1
+    profiles: [outils]                              # demarre seulement avec --profile outils
+    command: ["php", "-S", "0.0.0.0:8080", "-t", "/var/www/html"]
+    ports:
+      - "127.0.0.1:8082:8080"
+    networks:
+      - back
+
+networks:
+  front: {}
+  back: {}
+
+volumes:
+  pgdata: {}
+
+secrets:
+  db_mdp:
+    file: ./secrets/db_mdp.txt
